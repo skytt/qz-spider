@@ -3,13 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "node bin/www",
+    "watch": "nodemon bin/www",
+    "start": "node --tls-min-v1.0 bin/www ",
     "dev": "./node_modules/.bin/nodemon bin/www",
     "prd": "pm2 start bin/www",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "debug": "^4.1.1",
+    "iconv-lite": "^0.6.2",
     "koa": "^2.7.0",
     "koa-bodyparser": "^4.2.1",
     "koa-convert": "^1.2.0",
@@ -19,7 +21,8 @@
     "koa-router": "^7.4.0",
     "koa-static": "^5.0.0",
     "koa-views": "^6.2.0",
-    "pug": "^2.0.3"
+    "pug": "^2.0.3",
+    "request": "^2.88.2"
   },
   "devDependencies": {
     "nodemon": "^1.19.1"
