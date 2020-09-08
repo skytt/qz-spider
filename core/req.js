@@ -2,6 +2,7 @@ const request = require('request');
 const iconv = require('iconv-lite');
 const utils = require('./utils');
 
+// create a https agent
 var https = require('https');
 const httpsAgent = new https.Agent({ keepAlive: true });
 
@@ -17,10 +18,10 @@ exports.get = (url, params = null, header = {}, isGb2312) => {
   const option = {
     url: utils.baseURL + url,
     method: 'GET',
-    timeout: timeout,  // 设置请求超时，单位是毫秒
+    timeout: timeout,
     encoding: null,
     headers: Object.assign({}, baseHeader, header),
-    qs: params    // 进行GET请求时，此处的参数一定是qs,请注意，如果是POST请求，参数是form
+    qs: params
   }
   return baseRequest(option, isGb2312)
 }
@@ -29,17 +30,16 @@ exports.post = (url, params = {}, header = {}, isGb2312, isJson = false) => {
   const option = {
     url: utils.baseURL + url,
     method: 'POST',
-    timeout: timeout,  // 设置请求超时，单位是毫秒
+    timeout: timeout,
     json: isJson,
     encoding: null,
     headers: Object.assign({}, baseHeader, {
       'content-type': isJson ? 'application/json' : 'application/x-www-form-urlencoded',
     }, header),
-    form: params    // 进行GET请求时，此处的参数一定是qs,请注意，如果是POST请求，参数是form
+    form: params
   }
   return baseRequest(option, isGb2312)
 }
-
 
 
 // 封装通用 Promise 请求方法
