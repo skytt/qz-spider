@@ -1,5 +1,6 @@
 const req = require('./req')
 const utils = require('./utils');
+const resModal = require('./resModal')
 require('tls').DEFAULT_MIN_VERSION = 'TLSv1';   // 兼容教务系统TLS1.1
 
 // 进行登录并在返回值携带cookies
@@ -15,8 +16,8 @@ exports.doLogin = async (username, password) => {
   } catch (e) {
     return {
       ret: false,
-      code: 406,
-      msg: '访问教务系统时发生未知错误'
+      code: resModal.CODE.JWXT_INACCESSIBLE,
+      msg: resModal.TEXT.JWXT_INACCESSIBLE
     };
   }
   const cookies = loginRes.headers['set-cookie'][0];
@@ -30,14 +31,14 @@ exports.doLogin = async (username, password) => {
       const regErrMsg = /<font style="display: inline;white-space:nowrap;" color="red">([^<]*?)<\/font\>/gi;
       return {
         ret: false,
-        code: 401,
-        msg: regErrMsg.exec(loginRes.data)[1].trim() || '未能成功登录教务系统'
+        code: resModal.CODE.NO_AUTH,
+        msg: regErrMsg.exec(loginRes.data)[1].trim() || '登录教务系统错误'
       };
     default:      //  意料意外的返回状态码
       return {
         ret: false,
-        code: 406,
-        msg: `访问教务系统时发生未知错误`
+        code: resModal.CODE.JWXT_INACCESSIBLE,
+        msg: resModal.TEXT.JWXT_INACCESSIBLE
       };
   }
 }
@@ -53,15 +54,15 @@ exports.getMyInfo = async (cookies) => {
   } catch (e) {
     return {
       ret: false,
-      code: 406,
+      code: resModal.CODE.JWXT_INACCESSIBLE,
       msg: '访问教务系统时发生未知错误'
     };
   }
   if (utils.isSessionExpired(myInfo)) {
     return {
       ret: false,
-      code: 407,
-      msg: 'Token已失效'
+      code: resModal.CODE.COOKIE_EXPIRED,
+      msg: resModal.TEXT.COOKIE_EXPIRED
     };
   }
   const regDiv = /<div id="Top1_divLoginName" class="Nsb_top_menu_nc" style="color: #000000;">([^<]*?)<\/div\>/gi;
@@ -84,26 +85,26 @@ exports.getCourses = async (cookies, term, zc = null) => {
 
   let courseRes;
   try {
-    courseRes = await req.post(url, datas, customHeader, !true);
+    courseRes = await req.post(url, datas, customHeader, false);
   } catch (e) {
     return {
       ret: false,
-      code: 406,
-      msg: '访问教务系统时发生未知错误'
+      code: resModal.CODE.JWXT_INACCESSIBLE,
+      msg: resModal.TEXT.JWXT_INACCESSIBLE
     };
   }
   if (utils.isSessionExpired(courseRes)) {
     return {
       ret: false,
-      code: 407,
-      msg: 'Token已失效'
+      code: resModal.CODE.COOKIE_EXPIRED,
+      msg: resModal.TEXT.COOKIE_EXPIRED
     };
   }
   if (!courseRes.data) {
     return {
       ret: false,
-      code: 404,
-      msg: '没有找到对应的课表'
+      code: resModal.CODE.NOT_FOUND,
+      msg: resModal.TEXT.NOT_FOUND
     };
   }
 
@@ -114,7 +115,7 @@ exports.getCourses = async (cookies, term, zc = null) => {
   // 获取备注
   const remarkArr = coursesContent.pop();
   // 采用Set进行课程的存储
-  const courseSet = new Set();
+  const coursesSet = new Set();
 
   // 进行表格数组处理
   coursesContent.map(row => {
@@ -128,13 +129,13 @@ exports.getCourses = async (cookies, term, zc = null) => {
         // 课程内容不为空，拆分多节课程后（如有），计入Set中
         const courseCellArr = courseCellText.split('{@@}');
         courseCellArr.forEach(perCourse => {
-          courseSet.add(`${perCourse}星期{|}${day}`);
+          coursesSet.add(`${perCourse}星期{|}${day}`);
         })
       }
     });
   });
 
-  const courseOutArr = [];
+  const coursesOutArr = [];
   // 定义课程Object的key
   const keyName = {
     '标题': 'name',
@@ -144,7 +145,7 @@ exports.getCourses = async (cookies, term, zc = null) => {
     '节次': 'session_text',
     '星期': 'day'
   };
-  courseSet.forEach(course => {
+  coursesSet.forEach(course => {
     const courseOutObj = {};
 
     // 解析课程文本的基本数据
@@ -177,7 +178,7 @@ exports.getCourses = async (cookies, term, zc = null) => {
       }
       // 判断传入的周次是否符合单双周模式的描述（不能直接依靠开始结束循环，会有例如「1-18单周」这种东西的描述，很坑）
       const isWeekLeagl = week => {
-        if (weekDescMode === 0 || (weekDescMode === 1 && week % 2 === 1) || weekDescMode === 3 && week % 2 === 0) {
+        if (weekDescMode === 0 || (weekDescMode === 1 && week % 2 === 1) || weekDescMode === 2 && week % 2 === 0) {
           return true;
         }
         return false;
@@ -222,12 +223,12 @@ exports.getCourses = async (cookies, term, zc = null) => {
     // 星期day字段整型化
     courseOutObj.day = parseInt(courseOutObj.day);
 
-    courseOutArr.push(courseOutObj);
+    coursesOutArr.push(courseOutObj);
   })
 
   return {
     ret: true,
-    courses: courseOutArr,
+    courses: coursesOutArr,
     remark: remarkArr[1].trim() || null   // 为空则传null
   };
 }
