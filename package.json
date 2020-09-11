@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "watch": "nodemon bin/www",
+    "watch": "nodemon",
     "start": "node --tls-min-v1.0 bin/www ",
     "dev": "./node_modules/.bin/nodemon bin/www",
     "prd": "pm2 start bin/www",

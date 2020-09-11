@@ -9,13 +9,13 @@ router.get('/', async (ctx, next) => {
 
 router.post('/doLogin', doLogin)
 router.post('/getMyInfo', getMyInfo)
-
+router.post('/getCourses', getCourses)
 
 // 登录
 async function doLogin(ctx) {
   const { username, password } = ctx.request.body
   if (!username || !password) {
-    ctx.status = 401;
+    ctx.status = 400;
     ctx.body = {
       msg: '请输入用户名和密码'
     };
@@ -60,5 +60,40 @@ async function getMyInfo(ctx) {
   }
   ctx.set('Content-Type', 'application/json; charset=utf-8');
 }
+
+// 获取课程信息
+async function getCourses(ctx) {
+  const { authorization } = ctx.request.header
+  if (!authorization) {
+    ctx.status = 401;
+    ctx.body = {
+      msg: '请携带验证参数'
+    };
+    return;
+  }
+  const { term, zc } = ctx.request.body
+  if (!term) {
+    ctx.status = 400;
+    ctx.body = {
+      msg: '请输入查询学期'
+    };
+    return;
+  }
+  const courseRes = await jwxt.getCourses(authorization, term, zc);
+  if (courseRes.ret) {
+    ctx.status = 200;
+    ctx.body = {
+      courses: courseRes.courses,
+      remark: courseRes.remark
+    };
+  } else {
+    ctx.status = courseRes.code;
+    ctx.body = {
+      msg: courseRes.msg
+    };
+  }
+  ctx.set('Content-Type', 'application/json; charset=utf-8');
+}
+
 
 module.exports = router
