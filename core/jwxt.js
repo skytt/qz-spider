@@ -109,7 +109,8 @@ exports.getCourses = async (cookies, term, zc = null) => {
   }
 
   // 将文本的数据解析为表格数组
-  const coursesContent = utils.tdToArray(utils.reg_table.exec(courseRes.data)[1], true);
+  const kbReg = /<table id="kbtable"[\w\W]*?>([\w\W]*?)<\/table>/;
+  const coursesContent = utils.tdToArray(kbReg.exec(courseRes.data)[1], true);
   // 去除表头
   coursesContent.shift();
   // 获取备注
@@ -165,7 +166,7 @@ exports.getCourses = async (cookies, term, zc = null) => {
     })
 
     // 解析显示的周次，生成对应数组
-    let courseWeekText = courseOutObj.weektext;
+    let courseWeekText = courseOutObj.week_text;
     if (courseWeekText) {
       const weekArr = [];    //输出周次数组
       let weekDescMode;   // 模式说明：0-全周，1单周，2-双周
@@ -230,5 +231,83 @@ exports.getCourses = async (cookies, term, zc = null) => {
     ret: true,
     courses: coursesOutArr,
     remark: remarkArr[1].trim() || null   // 为空则传null
+  };
+}
+
+// 获取成绩
+exports.getGrade = async (cookies, term) => {
+  const url = `kscj/cjcx_list`;
+  const datas = { kksj: term };
+  const customHeader = { 'cookie': cookies };
+
+  let gradeRes;
+  try {
+    gradeRes = await req.post(url, datas, customHeader, false);
+  } catch (e) {
+    return {
+      ret: false,
+      code: resModal.CODE.JWXT_INACCESSIBLE,
+      msg: resModal.TEXT.JWXT_INACCESSIBLE
+    };
+  }
+  if (utils.isSessionExpired(gradeRes)) {
+    return {
+      ret: false,
+      code: resModal.CODE.COOKIE_EXPIRED,
+      msg: resModal.TEXT.COOKIE_EXPIRED
+    };
+  }
+  if (!gradeRes.data) {
+    return {
+      ret: false,
+      code: resModal.CODE.NOT_FOUND,
+      msg: resModal.TEXT.NOT_FOUND
+    };
+  }
+  // 将文本的数据解析为表格数组
+  const gradeReg = /<table id="dataList"[\w\W]*?>([\w\W]*?)<\/table>/;
+  const gradesContent = utils.tdToArray(gradeReg.exec(gradeRes.data)[1], false, true);
+
+  // 定义表头字段
+  const keyName = {
+    '序号': 'no',
+    '开课学期': 'term',
+    '课程编号': 'number',
+    '课程名称': 'name',
+    '总评成绩': 'grade',
+    '学分': 'credit',
+    '总学时': 'class_hour',
+    '绩点': 'gpa',
+    '考核方式': 'exam_type',
+    '课程属性': 'properties',
+    '课程性质': 'class_type'
+  }
+  // 最终输出数组
+  const gradeOutArr = []
+  // 取出实际表头
+  const titleName = gradesContent.shift()
+  // 取出统计信息
+  const countText = gradesContent.pop()[0].trim() || ''
+  // 进行单个课程的数据循环
+  gradesContent.forEach(gradeArr => {
+    const perGradeObj = {}
+    gradeArr.forEach((gradeInfo, index) => {
+      perGradeObj[keyName[titleName[index]]] = gradeInfo.trim()
+    })
+    gradeOutArr.push(perGradeObj)
+  })
+
+  // 信息统计匹配
+  const countReg = /^本学期选课学分：[\s]*([\d.]+)[\s]*获得学分：[\s]*([\d.]+)[\s]*本学期平均学分绩点：[\s]*([\d.]+)[\s]*$/
+  const countRegRes = countReg.exec(countText) || {}
+  const countObj = {
+    credit_expected: countRegRes[1] || null,
+    credit_gained: countRegRes[2] || null,
+    gpa: countRegRes[3] || null
+  }
+  return {
+    ret: true,
+    grade: gradeOutArr,
+    count: countObj
   };
 }

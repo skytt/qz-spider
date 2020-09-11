@@ -11,10 +11,11 @@ router.get('/', async (ctx, next) => {
 router.post('/doLogin', doLogin)
 router.post('/getMyInfo', getMyInfo)
 router.post('/getCourses', getCourses)
+router.post('/getGrade', getGrade)
 
 // 登录
 async function doLogin(ctx) {
-  const { username, password } = ctx.request.body
+  const { body: { username, password } } = ctx.request
   if (!username || !password) {
     ctx.status = resModal.CODE.PARAMS_NOT_ENOUGH;
     ctx.body = {
@@ -39,7 +40,7 @@ async function doLogin(ctx) {
 
 // 获取个人信息
 async function getMyInfo(ctx) {
-  const { authorization } = ctx.request.header
+  const { header: { authorization } } = ctx.request
   if (!authorization) {
     ctx.status = resModal.CODE.NO_AUTH;
     ctx.body = {
@@ -64,19 +65,18 @@ async function getMyInfo(ctx) {
 
 // 获取课程信息
 async function getCourses(ctx) {
-  const { authorization } = ctx.request.header
+  const { header: { authorization }, body: { term, zc } } = ctx.request
   if (!authorization) {
     ctx.status = resModal.CODE.NO_AUTH;
     ctx.body = {
-      msg: resModal.CODE.CARRY_COOKIE_REQ
+      msg: resModal.TEXT.CARRY_COOKIE_REQ
     };
     return;
   }
-  const { term, zc } = ctx.request.body
   if (!term) {
     ctx.status = resModal.CODE.PARAMS_NOT_ENOUGH;
     ctx.body = {
-      msg: resModal.CODE.ENTER_QUREY_TERM
+      msg: resModal.TEXT.ENTER_QUREY_TERM
     };
     return;
   }
@@ -96,5 +96,37 @@ async function getCourses(ctx) {
   ctx.set('Content-Type', 'application/json; charset=utf-8');
 }
 
+// 获取成绩列表
+async function getGrade(ctx) {
+  const { header: { authorization }, body: { term } } = ctx.request
+  if (!authorization) {
+    ctx.status = resModal.CODE.NO_AUTH;
+    ctx.body = {
+      msg: resModal.TEXT.CARRY_COOKIE_REQ
+    };
+    return;
+  }
+  if (!term) {
+    ctx.status = resModal.CODE.PARAMS_NOT_ENOUGH;
+    ctx.body = {
+      msg: resModal.TEXT.ENTER_QUREY_TERM
+    };
+    return;
+  }
+  const gradeRes = await jwxt.getGrade(authorization, term);
+  if (gradeRes.ret) {
+    ctx.status = resModal.CODE.OK;
+    ctx.body = {
+      count: gradeRes.count,
+      grade: gradeRes.grade
+    };
+  } else {
+    ctx.status = gradeRes.code;
+    ctx.body = {
+      msg: gradeRes.msg
+    };
+  }
+  ctx.set('Content-Type', 'application/json; charset=utf-8');
+}
 
 module.exports = router

@@ -4,8 +4,6 @@ exports.request_host = 'isea.sztu.edu.cn';
 exports.request_referer = 'https://isea.sztu.edu.cn/jsxsd/';
 exports.request_userAgent = 'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:43.0) Gecko/20100101 Firefox/43.0';
 
-exports.reg_table = /<table id="kbtable"[\w\W]*?>([\w\W]*?)<\/table>/;
-
 // login encode
 exports.encodeInp = input => {
   let keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
@@ -46,7 +44,11 @@ exports.isSessionExpired = response => {
   }
 }
 
-exports.tdToArray = (context, isCourse = false) => {
+exports.tdToArray = (context, isCourse = false, doubleTd = false) => {
+  if (doubleTd) {
+    // 成绩界面会出现两个</td>粘在一起的情况，优先处理成一个
+    context = context.replace(/<\/td><\/td>/sig, '<\/td>');
+  }
   if (isCourse) {
     // 先进行单课程重复显示的内容剔除
     context = context.replace(RegExp(/<div[^>]*?class=\"kbcontent1[^>].*<\/font><br\/><\/div>/si, 'g'), '');
@@ -64,7 +66,7 @@ exports.tdToArray = (context, isCourse = false) => {
   context = context.replace(/<\/td>/sig, '{td}');             // 对</td>标签特殊标记
 
   if (isCourse) {
-    // 将font标签（作为title特殊处理）
+    // 处理将font标签（作为title特殊处理）
     context = context.replace(/<font[^>]*?title='([^>]*?)'[^>]*?>/sig, '{||}$1{|}');
     context = context.replace(/<\/font([^>]*?)>/sig, '{||}');
     // 处理课程节数标签
@@ -74,11 +76,10 @@ exports.tdToArray = (context, isCourse = false) => {
     // 处理无用横线
     context = context.replace(/--------/sig, '');
   }
-
   context = context.replace(/<[/!]*?[^<>]*?>/sig, '');        // 去除HTML标记
   context = context.replace(/[\t\n\r]+/sig, '');              // 去掉空白字符
   context = context.replace(/&nbsp;/sig, '');                 // 去除html空格
-  context = context.replace(/\{\|\|\}\{\|\|\}/sig, '{||}');   //去除重复的标签
+  context = context.replace(/\{\|\|\}\{\|\|\}/sig, '{||}');   // 去除重复的标签
 
   const resultArr = context.split('{tr}');
   // 删除尾部空行
@@ -87,6 +88,10 @@ exports.tdToArray = (context, isCourse = false) => {
   }
   resultArr.forEach((row, index) => {
     resultArr[index] = row.split('{td}');
+    resultArr[index].pop()    // split以后最后会多出一项，去掉
+    resultArr[index].forEach((cell, celli) => {
+      resultArr[index][celli] = resultArr[index][celli].trim()
+    })
   });
 
   return resultArr;
