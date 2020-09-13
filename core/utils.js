@@ -1,15 +1,9 @@
-exports.baseURL = 'https://isea.sztu.edu.cn/jsxsd/';
-
-exports.request_host = 'isea.sztu.edu.cn';
-exports.request_referer = 'https://isea.sztu.edu.cn/jsxsd/';
-exports.request_userAgent = 'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:43.0) Gecko/20100101 Firefox/43.0';
-
 // login encode
 exports.encodeInp = input => {
-  let keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-  let output = "";
-  let chr1, chr2, chr3 = "";
-  let enc1, enc2, enc3, enc4 = "";
+  let keyStr = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+  let output = '';
+  let chr1, chr2, chr3 = '';
+  let enc1, enc2, enc3, enc4 = '';
   let i = 0;
   do {
     chr1 = input.charCodeAt(i++);
@@ -25,8 +19,8 @@ exports.encodeInp = input => {
       enc4 = 64;
     }
     output = output + keyStr.charAt(enc1) + keyStr.charAt(enc2) + keyStr.charAt(enc3) + keyStr.charAt(enc4);
-    chr1 = chr2 = chr3 = "";
-    enc1 = enc2 = enc3 = enc4 = "";
+    chr1 = chr2 = chr3 = '';
+    enc1 = enc2 = enc3 = enc4 = '';
   } while (i < input.length)
   return output;
 }
@@ -44,6 +38,7 @@ exports.isSessionExpired = response => {
   }
 }
 
+// 将表格html转化为数组
 exports.tdToArray = (context, isCourse = false, doubleTd = false) => {
   if (doubleTd) {
     // 成绩界面会出现两个</td>粘在一起的情况，优先处理成一个

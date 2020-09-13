@@ -1,6 +1,6 @@
 const req = require('./req')
 const utils = require('./utils');
-const resModal = require('./resModal')
+const resModal = require('../config/resModal')
 require('tls').DEFAULT_MIN_VERSION = 'TLSv1';   // 兼容教务系统TLS1.1
 
 // 进行登录并在返回值携带cookies
@@ -309,5 +309,93 @@ exports.getGrade = async (cookies, term) => {
     ret: true,
     grade: gradeOutArr,
     count: countObj
+  };
+}
+
+// 查询空教室
+exports.getEmptyRoom = async (cookies, term, buildid, week, day, session) => {
+  const url = `kbxx/jsjy_query2`;
+  const datas = {
+    typewhere: 'jszq',
+    xnxqh: term,
+    xqid: 'Vn',
+    jxlbh: buildid,
+    zc: week,
+    zc2: week,
+    xq: day,
+    xq2: day,
+    jc1: session,
+    jc2: session
+  };
+  const customHeader = { 'cookie': cookies };
+
+  let roomRes;
+  try {
+    roomRes = await req.post(url, datas, customHeader, false);
+  } catch (e) {
+    return {
+      ret: false,
+      code: resModal.CODE.JWXT_INACCESSIBLE,
+      msg: resModal.TEXT.JWXT_INACCESSIBLE
+    };
+  }
+  if (utils.isSessionExpired(roomRes)) {
+    return {
+      ret: false,
+      code: resModal.CODE.COOKIE_EXPIRED,
+      msg: resModal.TEXT.COOKIE_EXPIRED
+    };
+  }
+  if (!roomRes.data) {
+    return {
+      ret: false,
+      code: resModal.CODE.NOT_FOUND,
+      msg: resModal.TEXT.NOT_FOUND
+    };
+  }
+  // 将文本的数据解析为表格数组
+  const roomReg = /<table id="dataList"[\w\W]*?>([\w\W]*?)<\/table>/;
+  const roomsContent = utils.tdToArray(roomReg.exec(roomRes.data)[1], false, true);
+  // 定义教室状态模板
+  const roomStatus = {
+    'Ｌ': '临调',
+    'Ｇ': '调课',
+    '': '空闲',
+    'Κ': '考试',
+    'Ｘ': '锁定',
+    'Ｊ': '借用',
+    '◆': '上课'
+  }
+  // 最终输出数组
+  const roomsOutArr = []
+  // 删除最前面无用的星期行数
+  roomsContent.shift();
+  // 删除最后面无用的空行
+  roomsContent.pop();
+  // 取出表头
+  const sessionTitle = roomsContent.shift();
+  // 去除第一个空白单元格内容
+  sessionTitle.shift()
+  // 循环每个课室并解析数据
+  roomsContent.forEach(room => {
+    const roomObj = {
+      title: null,
+      capacities: 0,
+      status: []
+    };
+    const roomName = room.shift();
+    const titleReg = /([\w\W]*?)\(([\d]*)\/([\d]*)\)/;
+    const titleRegRes = titleReg.exec(roomName);
+    roomObj.title = titleRegRes[1];
+    roomObj.capacities = parseInt(titleRegRes[2]);
+    room.forEach(roomCell => {
+      roomObj.status.push(roomStatus[roomCell])
+    })
+    roomsOutArr.push(roomObj);
+  })
+  return {
+    ret: true,
+    sessionTitle: sessionTitle,
+    roomInfo: roomsOutArr
   };
 }

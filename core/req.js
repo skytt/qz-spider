@@ -1,6 +1,6 @@
 const request = require('request');
 const iconv = require('iconv-lite');
-const utils = require('./utils');
+const config = require('../config/config')
 
 // create a https agent
 var https = require('https');
@@ -8,15 +8,16 @@ const httpsAgent = new https.Agent({ keepAlive: true });
 
 const timeout = 5000;
 const baseHeader = {
-  'host': utils.request_host,
-  'user-agent': utils.request_userAgent,
+  'host': config.request_host,
+  'referer': config.request_referer,
+  'user-agent': config.request_userAgent,
   'connection': 'keep-alive',
   'agent': httpsAgent,
 };
 
 exports.get = (url, params = null, header = {}, isGb2312) => {
   const option = {
-    url: utils.baseURL + url,
+    url: config.baseURL + url,
     method: 'GET',
     timeout: timeout,
     encoding: null,
@@ -28,7 +29,7 @@ exports.get = (url, params = null, header = {}, isGb2312) => {
 
 exports.post = (url, params = {}, header = {}, isGb2312, isJson = false) => {
   const option = {
-    url: utils.baseURL + url,
+    url: config.baseURL + url,
     method: 'POST',
     timeout: timeout,
     json: isJson,

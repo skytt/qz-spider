@@ -13,5 +13,7 @@ exports.TEXT = {
   CARRY_COOKIE_REQ: '验证参数丢失，请重新登录',
   JWXT_INACCESSIBLE: '访问教务系统时发生未知错误',
   COOKIE_EXPIRED: 'Token已失效',
-  NOT_FOUND: '没有找到对应数据'
+  NOT_FOUND: '没有找到对应数据',
+  PARAMS_NOT_ENOUGH: '参数不完整',
+
 }
