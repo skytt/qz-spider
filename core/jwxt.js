@@ -55,7 +55,7 @@ exports.getMyInfo = async (cookies) => {
     return {
       ret: false,
       code: resModal.CODE.JWXT_INACCESSIBLE,
-      msg: '访问教务系统时发生未知错误'
+      msg: resModal.TEXT.JWXT_INACCESSIBLE
     };
   }
   if (utils.isSessionExpired(myInfo)) {

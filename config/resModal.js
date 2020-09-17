@@ -15,5 +15,4 @@ exports.TEXT = {
   COOKIE_EXPIRED: 'Token已失效',
   NOT_FOUND: '没有找到对应数据',
   PARAMS_NOT_ENOUGH: '参数不完整',
-
 }

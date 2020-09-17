@@ -1,15 +1,18 @@
 const router = require('koa-router')();
 
+const resModal = require('../config/resModal');
+const authMid = require('../middleware/auth')
+
 const jwxt = require('../core/jwxt');
-const resModal = require('../config/resModal')
+const checkAuthorization = authMid.checkAuthorization;
 
-router.prefix('/jwxt')
+router.prefix('/jwxt');
 
-router.post('/doLogin', doLogin)
-router.post('/getMyInfo', getMyInfo)
-router.post('/getCourses', getCourses)
-router.post('/getGrade', getGrade)
-router.post('/getEmptyRoom', getEmptyRoom)
+router.post('/doLogin', doLogin);
+router.post('/getMyInfo', checkAuthorization, getMyInfo);
+router.post('/getCourses', checkAuthorization, getCourses);
+router.post('/getGrade', checkAuthorization, getGrade);
+router.post('/getEmptyRoom', checkAuthorization, getEmptyRoom);
 
 // 登录
 async function doLogin(ctx) {
@@ -19,7 +22,7 @@ async function doLogin(ctx) {
     ctx.body = {
       msg: resModal.TEXT.ENTER_NAME_AND_PWD
     };
-    return
+    return false;
   }
   const loginRes = await jwxt.doLogin(username, password);
   if (loginRes.ret) {
@@ -39,13 +42,6 @@ async function doLogin(ctx) {
 // 获取个人信息
 async function getMyInfo(ctx) {
   const { header: { authorization } } = ctx.request
-  if (!authorization) {
-    ctx.status = resModal.CODE.NO_AUTH;
-    ctx.body = {
-      msg: resModal.CODE.CARRY_COOKIE_REQ
-    };
-    return
-  }
   const infoRes = await jwxt.getMyInfo(authorization);
   if (infoRes.ret) {
     ctx.status = resModal.CODE.OK;
@@ -64,19 +60,12 @@ async function getMyInfo(ctx) {
 // 获取课程信息
 async function getCourses(ctx) {
   const { header: { authorization }, body: { term, zc } } = ctx.request
-  if (!authorization) {
-    ctx.status = resModal.CODE.NO_AUTH;
-    ctx.body = {
-      msg: resModal.TEXT.CARRY_COOKIE_REQ
-    };
-    return;
-  }
   if (!term) {
     ctx.status = resModal.CODE.PARAMS_NOT_ENOUGH;
     ctx.body = {
       msg: resModal.TEXT.ENTER_QUREY_TERM
     };
-    return;
+    return false;
   }
   const courseRes = await jwxt.getCourses(authorization, term, zc);
   if (courseRes.ret) {
@@ -97,19 +86,12 @@ async function getCourses(ctx) {
 // 获取成绩列表
 async function getGrade(ctx) {
   const { header: { authorization }, body: { term } } = ctx.request
-  if (!authorization) {
-    ctx.status = resModal.CODE.NO_AUTH;
-    ctx.body = {
-      msg: resModal.TEXT.CARRY_COOKIE_REQ
-    };
-    return;
-  }
   if (!term) {
     ctx.status = resModal.CODE.PARAMS_NOT_ENOUGH;
     ctx.body = {
       msg: resModal.TEXT.ENTER_QUREY_TERM
     };
-    return;
+    return false;
   }
   const gradeRes = await jwxt.getGrade(authorization, term);
   if (gradeRes.ret) {
@@ -130,19 +112,12 @@ async function getGrade(ctx) {
 // 获取空教室
 async function getEmptyRoom(ctx) {
   const { header: { authorization }, body: { term, buildid, week, day, session } } = ctx.request
-  if (!authorization) {
-    ctx.status = resModal.CODE.NO_AUTH;
-    ctx.body = {
-      msg: resModal.TEXT.CARRY_COOKIE_REQ
-    };
-    return;
-  }
   if (!term || !buildid || !week || !day) {
     ctx.status = resModal.CODE.PARAMS_NOT_ENOUGH;
     ctx.body = {
       msg: resModal.TEXT.PARAMS_NOT_ENOUGH
     };
-    return;
+    return false;
   }
   const roomRes = await jwxt.getEmptyRoom(authorization, term, buildid, week, day, session);
   if (roomRes.ret) {
