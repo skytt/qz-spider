@@ -71,7 +71,8 @@ exports.getMyInfo = async (cookies) => {
     ret: true,
     data: {
       name: nameAndNum[0],
-      number: nameAndNum[1].substr(0, nameAndNum[1].length - 1)
+      number: nameAndNum[1].substr(0, nameAndNum[1].length - 1),
+      isStudent: nameAndNum[1].length > 10
     }
   };
 }
