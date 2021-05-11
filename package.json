@@ -5,11 +5,12 @@
   "scripts": {
     "watch": "nodemon",
     "start": "node --tls-min-v1.0 bin/www ",
-    "dev": "./node_modules/.bin/nodemon bin/www",
+    "dev": "cross-env UV_THREADPOOL_SIZE=100 ./node_modules/.bin/nodemon bin/www",
     "prd": "pm2 start bin/www",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "cross-env": "^7.0.3",
     "debug": "^4.1.1",
     "iconv-lite": "^0.6.2",
     "koa": "^2.7.0",

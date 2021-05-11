@@ -7,6 +7,7 @@ var https = require('https');
 const httpsAgent = new https.Agent({ keepAlive: true });
 
 const timeout = 5000;
+
 const baseHeader = {
   'host': config.request_host,
   'referer': config.request_referer,
@@ -46,7 +47,7 @@ exports.post = (url, params = {}, header = {}, isGb2312, isJson = false) => {
 // 封装通用 Promise 请求方法
 function baseRequest(req_opts, isGb2312 = false) {
   return new Promise((resolve, reject) => {
-    request(req_opts, (err, res, data) => {
+    request({ forever: true, pool: { maxSockets: 100 }, ...req_opts }, (err, res, data) => {
       if (!err) {
         // 正常返回
         resolve(Object.assign(res, { data: req_opts.json ? data : iconv.decode(data, isGb2312 ? 'gb2312' : 'utf-8').toString() }))
@@ -56,6 +57,7 @@ function baseRequest(req_opts, isGb2312 = false) {
         // })
       } else {
         // 发生错误
+        console.log(err)
         reject(err)
       }
     });

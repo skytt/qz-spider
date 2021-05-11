@@ -46,7 +46,7 @@ exports.doLogin = async (username, password) => {
 // 获取个人资料
 exports.getMyInfo = async (cookies) => {
   const url = `framework/xsMain.jsp`;
-  const customHeader = { 'cookie': cookies };
+  const customHeader = { 'Cookie': cookies };
 
   let myInfo;
   try {

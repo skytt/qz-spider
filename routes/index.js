@@ -6,10 +6,13 @@ router.get('/', async (ctx, next) => {
   });
 })
 
-router.get('/base/termList', async (ctx, next) => {
+router.get('/base/term', async (ctx, next) => {
   ctx.status = 200;
   ctx.body = {
+    term: { name: '2019-2020-1', from: '1614441600000', to: '1626451200000', beginGrade: 2020 },
+    // term: { name: '2020-2021-2', from: '1614441600000', to: '1626451200000', beginGrade: 2020 },
     termlist: [
+      { name: '2020-2021-2', from: '1614441600000', to: '1626451200000', beginGrade: 2020 },
       { name: '2020-2021-1', from: '1599321600000', to: '1611331200000', beginGrade: 2020 },
       { name: '2019-2020-3', from: '1595088000000', to: '1599235200000', beginGrade: 2019 },
       { name: '2019-2020-2', from: '1582992000000', to: '1595001600000', beginGrade: 2019 },
