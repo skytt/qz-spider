@@ -1,6 +1,6 @@
 const req = require('./req')
 const utils = require('./utils');
-const resModal = require('../config/resModal')
+const resModel = require('../config/resModel')
 require('tls').DEFAULT_MIN_VERSION = 'TLSv1';   // 兼容教务系统TLS1.1
 
 // 进行登录并在返回值携带cookies
@@ -16,8 +16,8 @@ exports.doLogin = async (username, password) => {
   } catch (e) {
     return {
       ret: false,
-      code: resModal.CODE.JWXT_INACCESSIBLE,
-      msg: resModal.TEXT.JWXT_INACCESSIBLE
+      code: resModel.CODE.JWXT_INACCESSIBLE,
+      msg: resModel.TEXT.JWXT_INACCESSIBLE
     };
   }
   const cookies = loginRes.headers['set-cookie'][0];
@@ -31,14 +31,14 @@ exports.doLogin = async (username, password) => {
       const regErrMsg = /<font style="display: inline;white-space:nowrap;" color="red">([^<]*?)<\/font\>/gi;
       return {
         ret: false,
-        code: resModal.CODE.NO_AUTH,
+        code: resModel.CODE.NO_AUTH,
         msg: regErrMsg.exec(loginRes.data)[1].trim() || '登录教务系统错误'
       };
     default:      //  意料意外的返回状态码
       return {
         ret: false,
-        code: resModal.CODE.JWXT_INACCESSIBLE,
-        msg: resModal.TEXT.JWXT_INACCESSIBLE
+        code: resModel.CODE.JWXT_INACCESSIBLE,
+        msg: resModel.TEXT.JWXT_INACCESSIBLE
       };
   }
 }
@@ -54,15 +54,15 @@ exports.getMyInfo = async (cookies) => {
   } catch (e) {
     return {
       ret: false,
-      code: resModal.CODE.JWXT_INACCESSIBLE,
-      msg: resModal.TEXT.JWXT_INACCESSIBLE
+      code: resModel.CODE.JWXT_INACCESSIBLE,
+      msg: resModel.TEXT.JWXT_INACCESSIBLE
     };
   }
   if (utils.isSessionExpired(myInfo)) {
     return {
       ret: false,
-      code: resModal.CODE.COOKIE_EXPIRED,
-      msg: resModal.TEXT.COOKIE_EXPIRED
+      code: resModel.CODE.COOKIE_EXPIRED,
+      msg: resModel.TEXT.COOKIE_EXPIRED
     };
   }
   const regDiv = /<div id="Top1_divLoginName" class="Nsb_top_menu_nc" style="color: #000000;">([^<]*?)<\/div\>/gi;
@@ -90,22 +90,22 @@ exports.getCourses = async (cookies, term, zc = null) => {
   } catch (e) {
     return {
       ret: false,
-      code: resModal.CODE.JWXT_INACCESSIBLE,
-      msg: resModal.TEXT.JWXT_INACCESSIBLE
+      code: resModel.CODE.JWXT_INACCESSIBLE,
+      msg: resModel.TEXT.JWXT_INACCESSIBLE
     };
   }
   if (utils.isSessionExpired(courseRes)) {
     return {
       ret: false,
-      code: resModal.CODE.COOKIE_EXPIRED,
-      msg: resModal.TEXT.COOKIE_EXPIRED
+      code: resModel.CODE.COOKIE_EXPIRED,
+      msg: resModel.TEXT.COOKIE_EXPIRED
     };
   }
   if (!courseRes.data) {
     return {
       ret: false,
-      code: resModal.CODE.NOT_FOUND,
-      msg: resModal.TEXT.NOT_FOUND
+      code: resModel.CODE.NOT_FOUND,
+      msg: resModel.TEXT.NOT_FOUND
     };
   }
 
@@ -247,22 +247,22 @@ exports.getGrade = async (cookies, term) => {
   } catch (e) {
     return {
       ret: false,
-      code: resModal.CODE.JWXT_INACCESSIBLE,
-      msg: resModal.TEXT.JWXT_INACCESSIBLE
+      code: resModel.CODE.JWXT_INACCESSIBLE,
+      msg: resModel.TEXT.JWXT_INACCESSIBLE
     };
   }
   if (utils.isSessionExpired(gradeRes)) {
     return {
       ret: false,
-      code: resModal.CODE.COOKIE_EXPIRED,
-      msg: resModal.TEXT.COOKIE_EXPIRED
+      code: resModel.CODE.COOKIE_EXPIRED,
+      msg: resModel.TEXT.COOKIE_EXPIRED
     };
   }
   if (!gradeRes.data) {
     return {
       ret: false,
-      code: resModal.CODE.NOT_FOUND,
-      msg: resModal.TEXT.NOT_FOUND
+      code: resModel.CODE.NOT_FOUND,
+      msg: resModel.TEXT.NOT_FOUND
     };
   }
   // 将文本的数据解析为表格数组
@@ -299,8 +299,9 @@ exports.getGrade = async (cookies, term) => {
   })
 
   // 信息统计匹配
-  const countReg = /^本学期选课学分：[\s]*([\d.]+)[\s]*获得学分：[\s]*([\d.]+)[\s]*本学期平均学分绩点：[\s]*([\d.]+)[\s]*$/
+  const countReg = /^选课学分：[\s]*([\d.]+)[\s]*获得学分：[\s]*([\d.]+)[\s]*平均学分绩点：[\s]*([\d.]+)[\s]*$/
   const countRegRes = countReg.exec(countText) || {}
+  // console.log(countText,countRegRes)
   const countObj = {
     credit_expected: countRegRes[1] || null,
     credit_gained: countRegRes[2] || null,
@@ -336,22 +337,22 @@ exports.getEmptyRoom = async (cookies, term, buildid, week, day, session) => {
   } catch (e) {
     return {
       ret: false,
-      code: resModal.CODE.JWXT_INACCESSIBLE,
-      msg: resModal.TEXT.JWXT_INACCESSIBLE
+      code: resModel.CODE.JWXT_INACCESSIBLE,
+      msg: resModel.TEXT.JWXT_INACCESSIBLE
     };
   }
   if (utils.isSessionExpired(roomRes)) {
     return {
       ret: false,
-      code: resModal.CODE.COOKIE_EXPIRED,
-      msg: resModal.TEXT.COOKIE_EXPIRED
+      code: resModel.CODE.COOKIE_EXPIRED,
+      msg: resModel.TEXT.COOKIE_EXPIRED
     };
   }
   if (!roomRes.data) {
     return {
       ret: false,
-      code: resModal.CODE.NOT_FOUND,
-      msg: resModal.TEXT.NOT_FOUND
+      code: resModel.CODE.NOT_FOUND,
+      msg: resModel.TEXT.NOT_FOUND
     };
   }
   // 将文本的数据解析为表格数组

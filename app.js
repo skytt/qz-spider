@@ -1,42 +1,46 @@
 const Koa = require('koa')
 const app = new Koa()
-const views = require('koa-views')
 const json = require('koa-json')
-const onerror = require('koa-onerror')
 const bodyparser = require('koa-bodyparser')
-const logger = require('koa-logger')
 
-const index = require('./routes/index')
-const jwxt = require('./routes/jwxt')
-
-// error handler
-onerror(app)
+// error message format
+app.use(async (ctx, next) => {
+  try {
+    await next()
+  } catch (err) {
+    ctx.response.status = err.statusCode || err.status || 500;
+    ctx.response.body = {
+      msg: err.message
+    };
+    // 手动释放error事件
+    ctx.app.emit('error', err, ctx);
+  }
+});
 
 // middlewares
 app.use(bodyparser({
   enableTypes: ['json', 'form', 'text']
 }))
 app.use(json())
-app.use(logger())
 app.use(require('koa-static')(__dirname + '/public'))
-
-app.use(views(__dirname + '/views', {
-  extension: 'pug'
-}))
 
 // logger
 app.use(async (ctx, next) => {
   const start = new Date()
   await next()
   const ms = new Date() - start
-  console.log(`${ctx.method} ${ctx.url} - ${ms}ms`)
+  console.log(`[${ctx.status}]${ctx.method} ${ctx.url} - ${ms}ms`)
 })
 
 // routes
-app.use(index.routes(), index.allowedMethods())
-app.use(jwxt.routes(), jwxt.allowedMethods())
+const indexRouter = require('./routes/index')
+const baseRouter = require('./routes/base')
+const jwxtRouter = require('./routes/jwxt')
+app.use(indexRouter.routes(), indexRouter.allowedMethods())
+app.use(baseRouter.routes(), baseRouter.allowedMethods())
+app.use(jwxtRouter.routes(), jwxtRouter.allowedMethods())
 
-// error-handling
+// error-recoder
 app.on('error', (err, ctx) => {
   console.error('server error', err, ctx)
 });

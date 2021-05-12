@@ -1,15 +1,11 @@
-const resModal = require('../config/resModal');
+const resModel = require('../config/resModel');
 
 exports.checkAuthorization = async (ctx, next) => {
   const { header: { authorization } } = ctx.request;
   if (!authorization) {
-    ctx.status = resModal.CODE.NO_AUTH;
-    ctx.body = {
-      msg: resModal.TEXT.CARRY_COOKIE_REQ
-    };
-    ctx.set('Content-Type', 'application/json; charset=utf-8');
-    // ctx.throw(resModal.CODE.NO_AUTH, resModal.TEXT.CARRY_COOKIE_REQ)
-    return false;
+    ctx.throw(resModel.CODE.NO_AUTH, resModel.TEXT.CARRY_COOKIE_REQ)
+    return;
   }
+  ctx.state.cookie = authorization
   return await next();
 }
