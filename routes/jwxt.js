@@ -82,7 +82,7 @@ router.post('/getGrade', async (ctx, next) => {
 router.post('/getEmptyRoom', async (ctx, next) => {
   const { state: { cookie }, request: { body: { term, buildid, week, day, session } } } = ctx
   if (!term || !buildid || !week || !day) {
-    ctx.throw(esModal.CODE.PARAMS_NOT_ENOUGH, resModel.TEXT.PARAMS_NOT_ENOUGH)
+    ctx.throw(resModel.CODE.PARAMS_NOT_ENOUGH, resModel.TEXT.PARAMS_NOT_ENOUGH)
     return
   }
   const roomRes = await jwxtFunc.getEmptyRoom(cookie, term, buildid, week, day, session);

@@ -18,7 +18,7 @@ const baseHeader = {
 
 exports.get = (url, params = null, header = {}, isGb2312) => {
   const option = {
-    url: config.baseURL + url,
+    url: config.jwxtBaseUrl + url,
     method: 'GET',
     timeout: timeout,
     encoding: null,
@@ -30,7 +30,7 @@ exports.get = (url, params = null, header = {}, isGb2312) => {
 
 exports.post = (url, params = {}, header = {}, isGb2312, isJson = false) => {
   const option = {
-    url: config.baseURL + url,
+    url: config.jwxtBaseUrl + url,
     method: 'POST',
     timeout: timeout,
     json: isJson,

@@ -1,4 +1,4 @@
-exports.baseURL = 'https://isea.sztu.edu.cn/jsxsd/';
+exports.jwxtBaseUrl = 'https://isea.sztu.edu.cn/jsxsd/';
 
 exports.request_host = 'isea.sztu.edu.cn';
 exports.request_referer = 'https://isea.sztu.edu.cn/jsxsd/';
